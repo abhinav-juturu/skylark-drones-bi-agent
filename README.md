@@ -52,48 +52,7 @@ This project delivers an end-to-end agentic solution that:
 
 ## System Architecture
 
-```
-+-------------------------------------------------------------------------+
-|                      Streamlit Web Interface (app.py)                   |
-|   [Executive Chat]  [Visual Funnel]  [Leadership Briefs]  [Data Audit]   |
-+------------------------------------+------------------------------------+
-                                     |
-                                     v
-+-------------------------------------------------------------------------+
-|               AI Agent Orchestrator (src/agent/orchestrator.py)         |
-|     * Intent Classification     * Context Assembler    * Clarification  |
-+-------------------+---------------------------------+-------------------+
-                    |                                 |
-                    v                                 v
-+--------------------------------------+  +-------------------------------+
-|   Groq LLM Engine (src/agent/llm.py) |  |  Business Analytics & Query   |
-|   * Primary: qwen/qwen3.8-27b        |  |  Engine (src/analytics/)      |
-|   * Fallback: openai/gpt-oss-120b    |  |  * Pipeline Health KPIs       |
-|   * Sub-second Token Streaming       |  |  * Revenue Realization & AR   |
-+--------------------------------------+  |  * Sector Deep-Dive           |
-                                          +---------------+---------------+
-                                                          |
-                                                          v
-+-------------------------------------------------------------------------+
-|              Data Resilience & Normalizer (src/data/)                   |
-|     * Date/Currency Normalization      * Cross-Board Linking            |
-|     * Data Health Score (0-100%)       * Caveat & Audit Generator       |
-+------------------------------------+------------------------------------+
-                                     |
-                                     v
-+-------------------------------------------------------------------------+
-|             Monday.com Connector Layer (src/connectors/)                |
-|     * MCP Tool Schema Protocol         * Direct GraphQL API Client      |
-|     * Cursor Pagination                * Retry & Rate-Limit Handling    |
-+------------------------------------+------------------------------------+
-                                     |
-                                     v
-                      +-----------------------------+
-                      |    Monday.com Live Boards   |
-                      |  * Deals (ID: 5030963292)   |
-                      |  * Work Orders (5030963279) |
-                      +-----------------------------+
-```
+![Skylark Drones BI Agent System Architecture](docs/images/architecture.png)
 
 ---
 
