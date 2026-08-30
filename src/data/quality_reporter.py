@@ -126,6 +126,5 @@ class DataQualityReporter:
             "Active Caveats:",
         ]
         for c in report.caveats:
-            prefix = "⚠️" if c.level == "WARNING" else ("🚨" if c.level == "CRITICAL" else "ℹ️")
-            lines.append(f" - {prefix} [{c.category}] {c.message}")
+            lines.append(f" - [{c.level}] [{c.category}] {c.message}")
         return "\n".join(lines)

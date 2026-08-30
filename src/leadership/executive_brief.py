@@ -52,25 +52,29 @@ class LeadershipBriefGenerator:
 LIVE EXECUTIVE DATA:
 {summary}
 
-Format your output exactly as follows:
-# 🦅 Skylark Drones - Weekly Founder Flash
+Guidelines:
+- Maintain a clean, professional, and humanized executive tone.
+- Do NOT use emojis anywhere in the output.
+- Format strictly as follows:
+
+# Skylark Drones - Weekly Founder Flash
 
 ## 1. Executive Snapshot & Core KPIs
 - **Active Sales Pipeline**: Value, Deal count, Weighted pipeline
 - **Booked Contract Value**: Total contracted PO amount (Excl/Incl GST)
 - **Revenue Billed vs Collected**: Billed Value, Collected Amount, Collection Efficiency %
-- **Outstanding Accounts Receivable**: Total AR exposure & Priority AR exposure
+- **Outstanding Accounts Receivable**: Total AR exposure and Priority AR exposure
 
-## 2. 🟢 Top Highlights & Wins
-- Highlight 2-3 positive indicators (e.g. top sectors, high win rates, healthy stage conversions).
+## 2. Top Business Highlights
+- Highlight 2-3 positive commercial and operational milestones.
 
-## 3. 🔴 Critical Red Flags & Bottlenecks
-- Identify 2-3 risks (e.g. overdue receivables, unbilled project backlog, missing CRM values).
+## 3. Critical Risks & Bottlenecks
+- Identify 2-3 risks (such as overdue receivables, unbilled backlog, or CRM pipeline gaps).
 
-## 4. 🎯 Leadership Action Items for the Week
-- Bulleted actionable decisions for Sales, Operations, and Finance leadership.
+## 4. Priority Action Items for the Week
+- Specific, actionable recommendations for Commercial, Operations, and Finance leadership.
 
-## 5. 🛡️ Data Quality & Caveats
+## 5. Data Health & Audit Notes
 - Note data completeness percentage and specific caveats.
 """
         response_text = self.llm_client.generate([{"role": "user", "content": prompt}], temperature=0.15)
@@ -90,23 +94,27 @@ Format your output exactly as follows:
 LIVE SECTOR DATA:
 {sectors}
 
-Format your output as:
-# 📊 Skylark Drones - Sector Performance Scorecard
+Guidelines:
+- Maintain a clean, professional, and humanized executive tone.
+- Do NOT use emojis anywhere in the output.
+- Format strictly as follows:
+
+# Skylark Drones - Sector Performance Scorecard
 
 ## 1. Executive Sector Ranking
 - Rank sectors by total contracted value, pipeline strength, and win conversion rates.
 
-## 2. Sector-by-Sector Deep Dive
-- **Mining**: Contracted, Billed, Pipeline, Conversion rate, Key Takeaway
-- **Powerline**: Contracted, Billed, Pipeline, Conversion rate, Key Takeaway
-- **Renewables / Solar**: Contracted, Billed, Pipeline, Key Takeaway
-- **Infrastructure & Other**: Performance overview
+## 2. Sector Deep Dives
+- **Mining**: Contracted Value, Billed Amount, Pipeline, Conversion Rate, Strategic Summary
+- **Powerline**: Contracted Value, Billed Amount, Pipeline, Conversion Rate, Strategic Summary
+- **Renewables / Solar**: Contracted Value, Billed Amount, Pipeline, Strategic Summary
+- **Infrastructure & Other**: Performance summary
 
-## 3. Strategic Sector Growth Opportunities
-- Where should BD/KAM leadership double down? Where are deals stalling?
+## 3. Growth Opportunities & Bottlenecks
+- Specific insights on where commercial teams should accelerate and where execution is stalling.
 
-## 4. Data Health Caveats
-- Note sector mapping caveats or unrecorded values.
+## 4. Data Health Notes
+- Note sector classification caveats or unassigned records.
 """
         response_text = self.llm_client.generate([{"role": "user", "content": prompt}], temperature=0.15)
         return {
@@ -120,13 +128,17 @@ Format your output as:
         """Accounts Receivable and Cash Flow Risk Matrix."""
         ar_data = self.query_engine.query_cash_and_ar_risks()
         
-        prompt = f"""You are the Head of Financial Planning & Operations at Skylark Drones. Generate a 'Cash Flow & Accounts Receivable (AR) Risk Matrix'.
+        prompt = f"""You are the Head of Financial Operations at Skylark Drones. Generate a 'Cash Flow & Accounts Receivable (AR) Risk Matrix'.
 
 LIVE FINANCIAL & AR DATA:
 {ar_data}
 
-Format your output as:
-# 💰 Skylark Drones - AR & Cash Flow Risk Matrix
+Guidelines:
+- Maintain a clean, professional, and humanized executive tone.
+- Do NOT use emojis anywhere in the output.
+- Format strictly as follows:
+
+# Skylark Drones - AR & Cash Flow Risk Matrix
 
 ## 1. Cash Realization Overview
 - **Total Billed Value (Incl. GST)**
@@ -134,14 +146,14 @@ Format your output as:
 - **Total Outstanding AR Exposure**
 - **Collection Efficiency Ratio (%)**
 
-## 2. 🚨 High-Priority AR Accounts Exposure
-- Table or list of top accounts with outstanding receivables, priority status, and collection delays.
+## 2. Priority Accounts Receivable Exposure
+- List top customer accounts with outstanding receivables, priority status, and billing notes.
 
-## 3. 📦 Unbilled Backlog Analysis
-- Breakdown of work orders delivered or executed but awaiting billing generation.
+## 3. Unbilled Project Backlog
+- Summary of executed work orders currently awaiting invoice generation.
 
-## 4. 🛠️ Collections Action Plan
-- Specific steps for Finance & KAM teams to accelerate cash conversion.
+## 4. Collections Action Plan
+- Concrete steps for Finance and Account Management teams to accelerate cash inflow.
 """
         response_text = self.llm_client.generate([{"role": "user", "content": prompt}], temperature=0.15)
         return {
@@ -160,8 +172,12 @@ Format your output as:
 LIVE OPERATIONS DATA:
 {ops_data}
 
-Format your output as:
-# ⚙️ Skylark Drones - Operational Execution Brief
+Guidelines:
+- Maintain a clean, professional, and humanized executive tone.
+- Do NOT use emojis anywhere in the output.
+- Format strictly as follows:
+
+# Skylark Drones - Operational Execution Brief
 
 ## 1. Work Order Execution Pipeline
 - Breakdown of active work orders across execution statuses (Completed, In Progress, Pending).
@@ -169,8 +185,8 @@ Format your output as:
 ## 2. Quantity Fulfillment vs PO Commitments
 - Total PO quantity vs quantity billed vs balance remaining.
 
-## 3. Operational Bottlenecks & Action Items
-- Work orders requiring billing updates, data delivery delays, and turnaround improvements.
+## 3. Operational Bottlenecks & Turnaround Actions
+- Specific work orders requiring billing updates, data delivery timeline improvements, and ops coordination.
 """
         response_text = self.llm_client.generate([{"role": "user", "content": prompt}], temperature=0.15)
         return {
