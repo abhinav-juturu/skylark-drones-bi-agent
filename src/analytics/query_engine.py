@@ -1,5 +1,6 @@
 """
 Multi-dimensional Business Intelligence Query Engine for natural language answering.
+Supports smart sector clustering, multi-dimensional filtering, and cross-board aggregations.
 """
 
 from typing import Optional, Any
@@ -14,6 +15,25 @@ from .metrics import (
     SectorKPIs,
     OperationalKPIs,
 )
+
+# Macro sector clusters mapping user terminology to CRM board categories
+SECTOR_CLUSTERS: dict[str, list[str]] = {
+    "energy": ["Renewables", "Powerline", "Solar", "Wind"],
+    "renewable": ["Renewables", "Solar", "Wind"],
+    "renewables": ["Renewables", "Solar", "Wind"],
+    "solar": ["Renewables", "Solar"],
+    "powerline": ["Powerline"],
+    "power": ["Powerline", "Renewables"],
+    "transmission": ["Powerline"],
+    "mining": ["Mining"],
+    "infrastructure": ["Infrastructure", "Railways", "Construction"],
+    "infra": ["Infrastructure", "Railways", "Construction"],
+    "railways": ["Infrastructure", "Railways"],
+    "railway": ["Infrastructure", "Railways"],
+    "construction": ["Construction", "Infrastructure"],
+    "enterprise": ["Dsp", "Security and surveillance", "Aviation", "Manufacturing"],
+    "tech": ["Dsp", "Security and surveillance"],
+}
 
 
 class BusinessQueryEngine:
@@ -31,6 +51,14 @@ class BusinessQueryEngine:
         self.unified_records = unified_records or DataNormalizer.reconcile_and_unify(deals, work_orders)
         self.quality_report = quality_report or DataQualityReporter.generate_report(deals, work_orders, self.unified_records)
 
+    @staticmethod
+    def resolve_sector_targets(sector: str) -> list[str]:
+        """Resolve a user-provided sector keyword to corresponding CRM sector tags."""
+        sec_clean = sector.strip().lower()
+        if sec_clean in SECTOR_CLUSTERS:
+            return [s.lower() for s in SECTOR_CLUSTERS[sec_clean]]
+        return [sec_clean]
+
     # --- Filtering Utilities ---
 
     def filter_deals(
@@ -43,12 +71,12 @@ class BusinessQueryEngine:
         date_from: Optional[date] = None,
         date_to: Optional[date] = None,
     ) -> list[DealRecord]:
-        """Filter deals by multiple dimensions."""
+        """Filter deals by multiple dimensions with smart sector clustering."""
         results = self.deals
 
         if sector:
-            sec_clean = sector.strip().lower()
-            results = [d for d in results if d.sector.lower() == sec_clean]
+            targets = self.resolve_sector_targets(sector)
+            results = [d for d in results if d.sector.lower() in targets or any(t in d.sector.lower() for t in targets)]
 
         if stage:
             stage_clean = stage.strip().lower()
@@ -87,12 +115,12 @@ class BusinessQueryEngine:
         has_ar_only: bool = False,
         ar_priority_only: bool = False,
     ) -> list[WorkOrderRecord]:
-        """Filter work orders by operational and financial criteria."""
+        """Filter work orders by operational and financial criteria with smart sector clustering."""
         results = self.work_orders
 
         if sector:
-            sec_clean = sector.strip().lower()
-            results = [w for w in results if w.sector.lower() == sec_clean]
+            targets = self.resolve_sector_targets(sector)
+            results = [w for w in results if w.sector.lower() in targets or any(t in w.sector.lower() for t in targets)]
 
         if billing_status:
             bst_clean = billing_status.strip().lower()
@@ -129,16 +157,32 @@ class BusinessQueryEngine:
         }
 
     def query_sector_performance(self, sector_name: Optional[str] = None) -> list[dict[str, Any]]:
-        """Query performance metrics for a specific sector or all sectors."""
+        """Query performance metrics for a specific sector or all sectors, resolving macro clusters."""
         sectors = BusinessMetricsCalculator.compute_sector_kpis(self.deals, self.work_orders)
-        if sector_name:
-            sec_clean = sector_name.strip().lower()
-            matched = [s.model_dump() for s in sectors if s.sector_name.lower() == sec_clean]
-            if matched:
-                return matched
-            # Try fuzzy contains
-            return [s.model_dump() for s in sectors if sec_clean in s.sector_name.lower()]
-        return [s.model_dump() for s in sectors]
+        if not sector_name:
+            return [s.model_dump() for s in sectors]
+
+        targets = self.resolve_sector_targets(sector_name)
+        matched = [s.model_dump() for s in sectors if s.sector_name.lower() in targets or any(t in s.sector_name.lower() for t in targets)]
+        
+        if len(matched) > 1 and sector_name.strip().lower() in SECTOR_CLUSTERS:
+            # Build a consolidated cluster summary object
+            consolidated = {
+                "sector_name": f"Consolidated {sector_name.capitalize()} Sector (Combined: {', '.join(m['sector_name'] for m in matched)})",
+                "deals_count": sum(m["deals_count"] for m in matched),
+                "pipeline_value": round(sum(m["pipeline_value"] for m in matched), 2),
+                "weighted_pipeline_value": round(sum(m["weighted_pipeline_value"] for m in matched), 2),
+                "won_deals": sum(m["won_deals"] for m in matched),
+                "work_orders_count": sum(m["work_orders_count"] for m in matched),
+                "total_contracted": round(sum(m["total_contracted"] for m in matched), 2),
+                "total_billed": round(sum(m["total_billed"] for m in matched), 2),
+                "total_collected": round(sum(m["total_collected"] for m in matched), 2),
+                "total_ar_outstanding": round(sum(m["total_ar_outstanding"] for m in matched), 2),
+                "sub_sectors": matched,
+            }
+            return [consolidated] + matched
+
+        return matched if matched else [s.model_dump() for s in sectors if sector_name.lower() in s.sector_name.lower()]
 
     def query_pipeline_health(self) -> dict[str, Any]:
         """Query pipeline volume, weighted pipeline, win rate, and funnel."""

@@ -64,7 +64,11 @@ class BIAgentOrchestrator:
 
         # Check for sector mention
         found_sectors = [
-            s for s in ["mining", "powerline", "solar", "energy", "infrastructure", "telecom", "agriculture"]
+            s for s in [
+                "energy", "renewables", "renewable", "solar", "wind", "powerline", "power",
+                "mining", "infrastructure", "infra", "railways", "railway", "construction",
+                "enterprise", "telecom", "agriculture", "aviation", "dsp"
+            ]
             if s in q
         ]
 
@@ -73,12 +77,27 @@ class BIAgentOrchestrator:
             sec_data = self.query_engine.query_sector_performance(sec)
             deals_in_sec = self.query_engine.filter_deals(sector=sec)
             wos_in_sec = self.query_engine.filter_work_orders(sector=sec)
+            
+            top_sec_deals = [
+                {
+                    "name": d.name,
+                    "stage": d.deal_stage,
+                    "value": d.masked_deal_value,
+                    "probability": d.closure_probability,
+                    "close_date": str(d.close_date_actual or d.tentative_close_date or "")
+                }
+                for d in sorted(deals_in_sec, key=lambda x: x.masked_deal_value or 0.0, reverse=True)[:5]
+            ]
+
             context_parts.append(f"### SECTOR PERFORMANCE DEEP-DIVE: {sec.upper()}\n{sec_data}")
-            context_parts.append(f"Deals Count: {len(deals_in_sec)} | Work Orders Count: {len(wos_in_sec)}")
+            context_parts.append(f"Top Open Deals in {sec.capitalize()}:\n{top_sec_deals}")
+            context_parts.append(f"Total Sector Deals Count: {len(deals_in_sec)} | Work Orders Count: {len(wos_in_sec)}")
+            
+            display_sec = "Energy (Renewables & Powerline)" if sec in ("energy", "renewables", "powerline") else sec.capitalize()
             suggested_followups = [
-                f"What are the largest active deals in {sec.capitalize()}?",
-                f"What is our collection efficiency for {sec.capitalize()} work orders?",
-                "How does this sector compare to our overall pipeline?",
+                f"What are the highest value open deals in {display_sec}?",
+                f"What is our collection efficiency and AR risk for {display_sec}?",
+                f"How does {display_sec} compare to overall company revenue?",
             ]
 
         elif any(w in q for w in ["ar", "receivable", "aging", "overdue", "collection", "collected", "unbilled", "cash"]):

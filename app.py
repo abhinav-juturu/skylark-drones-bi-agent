@@ -220,22 +220,35 @@ with tab_chat:
         "What are our key operational execution bottlenecks?",
     ]
 
-    selected_sample = None
     for idx, (col, sq) in enumerate(zip(prompt_cols, sample_queries)):
         with col:
             if st.button(sq, key=f"sq_{idx}", use_container_width=True):
-                selected_sample = sq
+                st.session_state.pending_query = sq
+                st.rerun()
 
     # Render Conversation History
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
 
-    # Handle user input (from chat input or sample prompt button)
+    # Render Active Suggested Follow-ups
+    if "latest_followups" in st.session_state and st.session_state.latest_followups:
+        st.markdown("<br>**Suggested Follow-up Inquiries:**", unsafe_allow_html=True)
+        f_cols = st.columns(len(st.session_state.latest_followups))
+        for f_idx, (f_col, f_text) in enumerate(zip(f_cols, st.session_state.latest_followups)):
+            with f_col:
+                if st.button(f_text, key=f"fu_btn_{f_idx}", use_container_width=True):
+                    st.session_state.pending_query = f_text
+                    st.session_state.latest_followups = []
+                    st.rerun()
+
+    # Handle user input (from chat input or button click)
     user_input = st.chat_input("Ask a business question across Deals and Work Orders...")
-    query_to_run = selected_sample or user_input
+    query_to_run = user_input or st.session_state.pop("pending_query", None)
 
     if query_to_run:
+        # Clear previous followups while computing new answer
+        st.session_state.latest_followups = []
         st.session_state.messages.append({"role": "user", "content": query_to_run})
         with st.chat_message("user"):
             st.markdown(query_to_run)
@@ -258,20 +271,14 @@ with tab_chat:
                         message_placeholder.markdown(full_response + "▌")
                     
                     message_placeholder.markdown(full_response)
-
-                    # Suggested Follow-ups
-                    if followups:
-                        st.markdown("**Suggested Follow-up Inquiries:**")
-                        f_cols = st.columns(len(followups))
-                        for f_idx, (f_col, f_text) in enumerate(zip(f_cols, followups)):
-                            with f_col:
-                                st.button(f_text, key=f"fu_{len(st.session_state.messages)}_{f_idx}", on_click=lambda t=f_text: st.session_state.messages.append({"role": "user", "content": t}))
+                    st.session_state.latest_followups = followups
 
                 except Exception as err:
                     full_response = f"An error occurred while generating insight: {err}"
                     message_placeholder.markdown(full_response)
 
         st.session_state.messages.append({"role": "assistant", "content": full_response})
+        st.rerun()
 
 
 # ==========================================
